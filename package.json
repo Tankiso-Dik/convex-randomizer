@@ -1,0 +1,20 @@
+{
+  "name": "tabkiso-mpela",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "insert": "npx convex run actions:insertMockData"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "convex": "^1.25.4",
+    "dotenv": "^16.6.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}
