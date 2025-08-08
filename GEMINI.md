@@ -1,120 +1,157 @@
-Perfect timing for a README refresh. This will make Gemini CLI *laser-focused* and give it full context to finish everything smoothly.
+🧠 GEMINI.md — Convex Product Randomizer
 
----
+This document defines the core functionality, schema contracts, and validation logic for the convex-randomizer project.
 
-### 🧾 Here’s what to put in the new `README.md` for the **Convex-based Product Randomizer**
+It is the source of truth used by Gemini CLI and other downstream agents (Codex, Makeover GPT, Product Preparer GPT) to ensure all scripts, schemas, and workflows remain aligned and deterministic.
 
----
+🎯 Project Purpose
 
-```md
-# Convex Product Randomizer
+The Convex Product Randomizer is a zero-frontend, script-first system that:
 
-This is a minimal, monolithic project for managing and querying PLR Notion templates using Convex as a backend and terminal scripts as the interface. It is designed to run inside Replit or locally without needing a frontend or APIs.
+Stores PLR Notion template product data in a Convex database
 
-## 📦 Purpose
+Allows terminal scripts to fetch random products from the DB
 
-- Store product data (templates) manually using the Convex UI.
-- Fetch a **random product** using terminal scripts.
-- Pass the random product to AI tools like Gemini CLI or Codex for generating:
-  - Image prompts
-  - SEO copy
-  - Product descriptions
-  - Listing metadata
+Randomly selects a valid marketplace platform (excluding "N/A")
 
-No frontend. No API endpoints. Just Convex + CLI.
+Outputs the enriched product with selectedPlatform and selectedUrl
 
----
+Logs the result into logs.txt (last 20 entries only)
 
-## 🗃️ Project Structure
+Supports Gemini CLI / Codex pipelines to generate:
 
-```
+Image prompts
 
-convex-randomizer/
-├── convex/
-│   ├── schema.ts              # Product schema definition
-│   ├── products.ts            # Query to get all products
-│   └── \_generated/            # Convex auto-generated files
-├── scripts/
-│   └── randomize.ts           # Script to fetch a random product from Convex
-├── .env.local                 # Convex cloud project info
-├── package.json
-├── tsconfig.json
-├── README.md                  # You're reading this
+SEO copy
 
-````
+Product descriptions
 
----
+Marketplace metadata
 
-## 🧠 Schema Overview
+This project is designed for use without a frontend, and may be run on local machines, Replit, or any CLI-compatible cloud system.
 
-Each product in Convex includes:
+🧱 Schema Definition
 
-- `listingName: string`
-- `officialName: string`
-- `shortDescription: string`
-- `features: string[]`
-- `instructions: string`
-- `tags: string[]`
-- `categories: string[]`
-- `imagePolished: string[]`
-- `screenshots: string[]`
-- `gifs: string[]`
-- `videoUrls: string[]`
-- `gumroadUrl: string`
-- `etsyUrl: string`
-- `creativeMarketUrl: string`
-- `selectedPlatform: "gumroad" | "etsy" | "creativeMarket"`
-- `selectedUrl: string`
+Collection: products
 
-Data is manually added through the [Convex Dashboard](https://dashboard.convex.dev/).
+{
+  listingName: string;
+  officialName: string;
+  shortDescription: string;
+  description: string;
+  instructions: string;
 
----
+  gumroadUrl: string;
+  etsyUrl: string;
+  creativeMarketUrl: string;
+  notionUrl: string;
+  notionery: string;
+  notionEverything: string;
+  prototion: string;
+  notionLand: string;
 
-## 🌀 How It Works
+  features: string[];
+  categories: string[];
+  tags: string[];
 
-1. Start Convex dev server:  
-   ```bash
-   npx convex dev
-````
+  imagePolished: string[];
+  screenshots: string[];
+  gifs: string[];
+  videoUrls: string[];
 
-2. Insert products through the dashboard UI.
+  media: {
+    url: string;
+    type: "thumbnail" | "screenshot" | "banner" | "video" | "gif" | "icon";
+    altText: string;
+  }[];
+}
 
-3. Run the randomizer script:
+All platform URL fields must either:
 
-   ```bash
-   npx tsx scripts/randomize.ts
-   ```
+Contain a valid URL (https)
 
-4. Use the output in prompts for image generation, SEO writing, or markdown documentation.
+Or be the string "N/A"
 
----
+The field media[] is required (can be empty) and supports structured access by image type.
 
-## ✅ Done
+🔁 Randomizer Behavior
 
-* [x] Schema defined
-* [x] Dev server working
-* [x] Manual data entry working
-* [x] Randomizer CLI script scaffolding
-* [x] Gemini CLI ready to consume prompt input
+Script: scripts/randomize.ts
 
----
+Selects a single random product from Convex
 
-## 🧠 Future Ideas
+Filters platforms with URLs that are not "N/A"
 
-* Optional filtering by platform or category
-* Markdown output format for the random product
-* Frontend UI (deferred)
-* Replit support (already works!)
+Picks one valid platform at random
 
----
+Outputs selectedPlatform and selectedUrl to stdout
 
-## 👋 Usage Goals
+Appends the run to logs.txt (maintaining a maximum of 20 entries)
 
-This repo is part of a larger system for remaking and selling PLR Notion templates. The randomizer helps ensure consistent output pipelines while reducing burnout and cognitive fatigue.
+Script: scripts/batchRandomize.ts
 
-```
+Selects 20 random products (no duplicates)
 
----
+Filters platforms as above
 
-Let me know if you'd like me to paste this into a real `README.md` scaffold or tweak any language. Once added, Gemini CLI will be ready to take over.
-```
+Picks one valid platform per product (or marks N/A if none)
+
+Writes all 20 runs to logs.txt (replacing older entries)
+
+Outputs all enriched products as a JSON array
+
+📋 Validation Contracts (Enforced in Schema + Logic)
+
+All platform fields default to "N/A"
+
+Randomizers must ignore platform fields with "N/A"
+
+media[] must be an array (can be empty)
+
+Each item in media[] must include:
+
+url (string)
+
+type (enum)
+
+altText (string)
+
+logs.txt should contain a maximum of 20 entries
+
+Each line: Timestamp, ID, Platform
+
+🤖 Gemini CLI Integration
+
+This project is designed for direct use with Gemini CLI tools.
+The output of randomize.ts or batchRandomize.ts is passed into:
+
+Makeover GPT → Generates visual identity, themes, prompts
+
+Product Preparer GPT → Generates SEO, instructions, categories, alt text
+
+OBS GPT → Determines walkthrough recording plan
+
+Tags Generator GPT → Creates marketplace tag metadata
+
+Gemini CLI must enforce:
+
+Schema alignment when seeding entries
+
+Valid URL or "N/A" for each platform field
+
+Presence of at least one media[] item when needed by a downstream GPT
+
+Never assume presence of selectedPlatform or selectedUrl inside Convex DB — they are script-generated only
+
+🛠️ Maintenance Notes
+
+Add new marketplaces only as wildcards (string, default: "N/A")
+
+To test platform selection logic, always seed at least 2 products with multiple valid platform URLs
+
+Convex schema changes must be mirrored here and in schema.ts
+
+✅ Completion Criteria
+
+This project is working as intended when:
+

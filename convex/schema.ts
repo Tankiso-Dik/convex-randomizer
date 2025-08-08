@@ -1,4 +1,3 @@
-// convex/schema.ts
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -13,6 +12,12 @@ export default defineSchema({
     gumroadUrl: v.string(),
     etsyUrl: v.string(),
     creativeMarketUrl: v.string(),
+    notionUrl: v.string(),
+
+    notionery: v.string(),
+    notionEverything: v.string(),
+    prototion: v.string(),
+    notionLand: v.string(),
 
     features: v.array(v.string()),
     categories: v.array(v.string()),
@@ -22,5 +27,20 @@ export default defineSchema({
     screenshots: v.array(v.string()),
     gifs: v.array(v.string()),
     videoUrls: v.array(v.string()),
+
+    media: v.array(
+      v.object({
+        url: v.string(),
+        type: v.union(
+          v.literal("thumbnail"),
+          v.literal("screenshot"),
+          v.literal("banner"),
+          v.literal("video"),
+          v.literal("gif"),
+          v.literal("icon")
+        ),
+        altText: v.string(),
+      })
+    ),
   }),
 });
