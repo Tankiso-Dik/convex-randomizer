@@ -1,3 +1,4 @@
+// scripts/randomize.ts
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 import dotenv from "dotenv";
@@ -6,7 +7,39 @@ import fs from "fs";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
-const convex = new ConvexHttpClient(process.env.CONVEX_URL!);
+const url = process.env.CONVEX_URL;
+if (!url || !url.startsWith("https://")) {
+  throw new Error("CONVEX_URL is required and must start with https://");
+}
+const convex = new ConvexHttpClient(url as string);
+
+// --- Types ------------------------------------------------------------------
+
+type PlatformKey =
+  | "gumroadUrl"
+  | "etsyUrl"
+  | "creativeMarketUrl"
+  | "notionUrl"
+  | "notionery"
+  | "notionEverything"
+  | "prototion"
+  | "notionLand";
+
+type MediaItem = {
+  url: string;
+  type: "thumbnail" | "screenshot" | "banner" | "video" | "gif" | "icon";
+  altText?: string;          // may be missing on legacy data
+  sceneDescription?: string; // may be missing until migration
+};
+
+type Product = {
+  _id?: string;
+  media?: MediaItem[];
+} & {
+  [K in PlatformKey]?: string | undefined;
+} & Record<string, unknown>;
+
+// ---------------------------------------------------------------------------
 
 const PLATFORM_KEYS = [
   { key: "gumroadUrl", label: "gumroad" },
@@ -17,51 +50,73 @@ const PLATFORM_KEYS = [
   { key: "notionEverything", label: "notionEverything" },
   { key: "prototion", label: "prototion" },
   { key: "notionLand", label: "notionLand" },
-];
+] as const satisfies ReadonlyArray<{ key: PlatformKey; label: string }>;
 
-async function main() {
-  const products = await convex.query(api.products.get);
-  if (products.length === 0) {
+function pickValidPlatform(product: Product) {
+  const valid = PLATFORM_KEYS
+    .map(({ key, label }) => {
+      const url = product[key];
+      return url && url !== "N/A" && url.startsWith("https://") ? { platform: label, url } : null;
+    })
+    .filter(Boolean) as Array<{ platform: string; url: string }>;
+
+  if (valid.length === 0) return null;
+  return valid[Math.floor(Math.random() * valid.length)];
+}
+
+// Soft check for older entries that might be missing complements
+function warnIfMediaIncomplete(media?: MediaItem[]) {
+  if (!Array.isArray(media)) return;
+  for (const m of media) {
+    if (!m?.altText || !m?.sceneDescription) {
+      console.warn(
+        "[WARN] Media item missing complements:",
+        JSON.stringify({
+          url: m?.url,
+          type: m?.type,
+          altText: m?.altText,
+          sceneDescription: m?.sceneDescription,
+        })
+      );
+    }
+  }
+}
+
+async function main(): Promise<void> {
+  const products = (await convex.query(api.products.get)) as Product[];
+  if (!products || products.length === 0) {
     console.log("No products found.");
     return;
   }
 
   const randomIndex = Math.floor(Math.random() * products.length);
-  const product = products[randomIndex];
+  const product: Product = { ...products[randomIndex] };
 
-  const validPlatforms = PLATFORM_KEYS
-    .filter(({ key }) => product[key] && product[key] !== "N/A")
-    .map(({ key, label }) => ({
-      platform: label,
-      url: product[key],
-    }));
+  // Optional: visibility for incomplete legacy media
+  warnIfMediaIncomplete(product.media);
 
-  if (validPlatforms.length > 0) {
-    const selected = validPlatforms[Math.floor(Math.random() * validPlatforms.length)];
-    product.selectedPlatform = selected.platform;
-    product.selectedUrl = selected.url;
-  } else {
-    product.selectedPlatform = "N/A";
-    product.selectedUrl = "";
-  }
+  const selection = pickValidPlatform(product);
+  (product as any).selectedPlatform = selection ? selection.platform : "N/A";
+  (product as any).selectedUrl = selection ? selection.url : "";
 
   console.log(JSON.stringify(product, null, 2));
 
-  // Load existing logs and truncate
+  // Append to logs and keep only the last 20 lines
   const logPath = path.join(process.cwd(), "logs.txt");
-  let existingLogs = "";
-
+  let logLines: string[] = [];
   try {
-    existingLogs = fs.readFileSync(logPath, "utf-8");
+    const existing = fs.readFileSync(logPath, "utf-8");
+    logLines = existing.trim().split("\n").filter(Boolean);
   } catch {
-    existingLogs = "";
+    // no existing logs, that's fine
   }
 
-  const logLines = existingLogs.trim().split("\n").filter(Boolean);
-  const newLog = `Timestamp: ${new Date().toISOString()}, ID: ${product._id}, Platform: ${product.selectedPlatform}`;
-  const updatedLogs = [...logLines.slice(-19), newLog].join("\n") + "\n";
-
-  fs.writeFileSync(logPath, updatedLogs);
+  const newLine = `Timestamp: ${new Date().toISOString()}, ID: ${product._id ?? "unknown"}, Platform: ${(product as any).selectedPlatform}`;
+  const updated = [newLine, ...logLines].slice(0, 20).join("\n") + "\n";
+  fs.writeFileSync(logPath, updated);
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error(err);
+  // no process.exit() needed; avoids Node types requirement in TS
+});

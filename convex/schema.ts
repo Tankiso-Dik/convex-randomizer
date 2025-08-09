@@ -1,33 +1,32 @@
+// convex/schema.ts
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
   products: defineTable({
+    // Core text fields
     listingName: v.string(),
     officialName: v.string(),
     shortDescription: v.string(),
     description: v.string(),
     instructions: v.string(),
 
-    gumroadUrl: v.string(),
-    etsyUrl: v.string(),
-    creativeMarketUrl: v.string(),
-    notionUrl: v.string(),
+    // Platform URLs (optional so you don't need to store "N/A")
+    gumroadUrl: v.optional(v.string()),
+    etsyUrl: v.optional(v.string()),
+    creativeMarketUrl: v.optional(v.string()),
+    notionUrl: v.optional(v.string()),
+    notionery: v.optional(v.string()),
+    notionEverything: v.optional(v.string()),
+    prototion: v.optional(v.string()),
+    notionLand: v.optional(v.string()),
 
-    notionery: v.string(),
-    notionEverything: v.string(),
-    prototion: v.string(),
-    notionLand: v.string(),
-
+    // Metadata
     features: v.array(v.string()),
     categories: v.array(v.string()),
     tags: v.array(v.string()),
 
-    imagePolished: v.array(v.string()),
-    screenshots: v.array(v.string()),
-    gifs: v.array(v.string()),
-    videoUrls: v.array(v.string()),
-
+    // Canonical media store (mandatory complements)
     media: v.array(
       v.object({
         url: v.string(),
@@ -39,8 +38,15 @@ export default defineSchema({
           v.literal("gif"),
           v.literal("icon")
         ),
-        altText: v.string(),
+        altText: v.string(),          // required
+        sceneDescription: v.string(), // required
       })
     ),
+
+    // Legacy arrays (for migration only; remove after backfill)
+    imagePolished: v.optional(v.array(v.string())),
+    screenshots: v.optional(v.array(v.string())),
+    gifs: v.optional(v.array(v.string())),
+    videoUrls: v.optional(v.array(v.string())),
   }),
 });
