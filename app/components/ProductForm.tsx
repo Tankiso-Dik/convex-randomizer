@@ -11,6 +11,7 @@ export type ProductFormValues = {
   features: string[];
   categories: string[];
   tags: string[];
+  media: any[];
 };
 
 interface ProductFormProps {
@@ -39,6 +40,7 @@ export default function ProductForm({ defaultValues, onSubmit }: ProductFormProp
       features: features.split(",").map((s) => s.trim()).filter(Boolean),
       categories: categories.split(",").map((s) => s.trim()).filter(Boolean),
       tags: tags.split(",").map((s) => s.trim()).filter(Boolean),
+      media: defaultValues?.media ?? [],
     });
   };
 
