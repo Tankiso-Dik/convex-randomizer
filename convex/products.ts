@@ -83,3 +83,21 @@ export const remove = mutation({
     return { ok: true };
   },
 });
+
+export const seed = mutation({
+  args: { products: v.array(v.object(baseArgs)) },
+  handler: async (ctx, { products }) => {
+    const ids: Id<"products">[] = [];
+    for (const product of products) {
+      const copy = { ...product } as any;
+      trimAndOmitEmpty(copy);
+      ids.push(
+        await ctx.db.insert("products", {
+          ...copy,
+          media: copy.media ?? [],
+        })
+      );
+    }
+    return ids;
+  },
+});
