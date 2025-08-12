@@ -1,13 +1,12 @@
-// app/layout.tsx
-import "./globals.css"; // if you have it; otherwise remove
+import "./globals.css";
 import { ReactNode } from "react";
-import { SessionProvider } from "next-auth/react";
+import AuthGate from "./components/AuthGate";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <SessionProvider>{children}</SessionProvider>
+        <AuthGate>{children}</AuthGate>
       </body>
     </html>
   );

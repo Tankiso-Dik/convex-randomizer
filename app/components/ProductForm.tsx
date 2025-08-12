@@ -1,21 +1,17 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, FormEvent } from "react";
 
-const productSchema = z.object({
-  listingName: z.string().min(1, "Required"),
-  officialName: z.string().min(1, "Required"),
-  shortDescription: z.string().min(1, "Required"),
-  description: z.string().min(1, "Required"),
-  instructions: z.string().min(1, "Required"),
-  features: z.array(z.string().min(1, "Required")).default([""]),
-  categories: z.array(z.string().min(1, "Required")).default([""]),
-  tags: z.array(z.string().min(1, "Required")).default([""]),
-});
-
-export type ProductFormValues = z.infer<typeof productSchema>;
+export type ProductFormValues = {
+  listingName: string;
+  officialName: string;
+  shortDescription: string;
+  description: string;
+  instructions: string;
+  features: string[];
+  categories: string[];
+  tags: string[];
+};
 
 interface ProductFormProps {
   defaultValues?: ProductFormValues;
@@ -23,96 +19,64 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ defaultValues, onSubmit }: ProductFormProps) {
-  const { register, control, handleSubmit } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: defaultValues ?? {
-      listingName: "",
-      officialName: "",
-      shortDescription: "",
-      description: "",
-      instructions: "",
-      features: [""],
-      categories: [""],
-      tags: [""],
-    },
-  });
+  const [listingName, setListingName] = useState(defaultValues?.listingName ?? "");
+  const [officialName, setOfficialName] = useState(defaultValues?.officialName ?? "");
+  const [shortDescription, setShortDescription] = useState(defaultValues?.shortDescription ?? "");
+  const [description, setDescription] = useState(defaultValues?.description ?? "");
+  const [instructions, setInstructions] = useState(defaultValues?.instructions ?? "");
+  const [features, setFeatures] = useState((defaultValues?.features || []).join(", "));
+  const [categories, setCategories] = useState((defaultValues?.categories || []).join(", "));
+  const [tags, setTags] = useState((defaultValues?.tags || []).join(", "));
 
-  const {
-    fields: featureFields,
-    append: addFeature,
-    remove: removeFeature,
-  } = useFieldArray({ control, name: "features" });
-
-  const {
-    fields: categoryFields,
-    append: addCategory,
-    remove: removeCategory,
-  } = useFieldArray({ control, name: "categories" });
-
-  const {
-    fields: tagFields,
-    append: addTag,
-    remove: removeTag,
-  } = useFieldArray({ control, name: "tags" });
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      listingName,
+      officialName,
+      shortDescription,
+      description,
+      instructions,
+      features: features.split(",").map((s) => s.trim()).filter(Boolean),
+      categories: categories.split(",").map((s) => s.trim()).filter(Boolean),
+      tags: tags.split(",").map((s) => s.trim()).filter(Boolean),
+    });
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={submit} className="space-y-4">
       <div>
         <label>Listing Name</label>
-        <input {...register("listingName")} className="border" />
+        <input value={listingName} onChange={(e) => setListingName(e.target.value)} className="border" />
       </div>
       <div>
         <label>Official Name</label>
-        <input {...register("officialName")} className="border" />
+        <input value={officialName} onChange={(e) => setOfficialName(e.target.value)} className="border" />
       </div>
       <div>
         <label>Short Description</label>
-        <textarea {...register("shortDescription")} className="border" />
+        <textarea value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} className="border" />
       </div>
       <div>
         <label>Description</label>
-        <textarea {...register("description")} className="border" />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="border" />
       </div>
       <div>
         <label>Instructions</label>
-        <textarea {...register("instructions")} className="border" />
+        <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} className="border" />
       </div>
-
       <div>
-        <label>Features</label>
-        {featureFields.map((field, index) => (
-          <div key={field.id}>
-            <input {...register(`features.${index}` as const)} className="border" />
-            <button type="button" onClick={() => removeFeature(index)}>Remove</button>
-          </div>
-        ))}
-        <button type="button" onClick={() => addFeature("")}>Add Feature</button>
+        <label>Features (comma separated)</label>
+        <input value={features} onChange={(e) => setFeatures(e.target.value)} className="border" />
       </div>
-
       <div>
-        <label>Categories</label>
-        {categoryFields.map((field, index) => (
-          <div key={field.id}>
-            <input {...register(`categories.${index}` as const)} className="border" />
-            <button type="button" onClick={() => removeCategory(index)}>Remove</button>
-          </div>
-        ))}
-        <button type="button" onClick={() => addCategory("")}>Add Category</button>
+        <label>Categories (comma separated)</label>
+        <input value={categories} onChange={(e) => setCategories(e.target.value)} className="border" />
       </div>
-
       <div>
-        <label>Tags</label>
-        {tagFields.map((field, index) => (
-          <div key={field.id}>
-            <input {...register(`tags.${index}` as const)} className="border" />
-            <button type="button" onClick={() => removeTag(index)}>Remove</button>
-          </div>
-        ))}
-        <button type="button" onClick={() => addTag("")}>Add Tag</button>
+        <label>Tags (comma separated)</label>
+        <input value={tags} onChange={(e) => setTags(e.target.value)} className="border" />
       </div>
-
       <button type="submit">Save</button>
     </form>
   );
 }
-
