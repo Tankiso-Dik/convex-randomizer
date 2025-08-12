@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "insert": "npx convex run actions:insertMockData"
+    "insert": "npx convex run actions:insertMockData",
+    "randomize": "tsx scripts/randomize.ts",
+    "batchRandomize": "tsx scripts/batchRandomize.ts"
   },
   "keywords": [],
   "author": "",
