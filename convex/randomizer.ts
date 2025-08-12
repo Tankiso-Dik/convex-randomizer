@@ -3,13 +3,26 @@ import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
 export const randomize = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { seed: v.optional(v.string()) },
+  handler: async (ctx, { seed }) => {
     const products = await ctx.db.query("products").collect();
     if (products.length === 0) {
       throw new Error("No products available");
     }
-    const product = products[Math.floor(Math.random() * products.length)];
+
+    let index: number;
+    if (seed) {
+      // Simple deterministic hash to select a product based on the seed
+      let hash = 0;
+      for (let i = 0; i < seed.length; i++) {
+        hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+      }
+      index = hash % products.length;
+    } else {
+      index = Math.floor(Math.random() * products.length);
+    }
+
+    const product = products[index];
     await ctx.db.insert("randomizerStats", {
       productId: product._id as Id<"products">,
       timestamp: Date.now(),
