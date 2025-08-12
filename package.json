@@ -4,10 +4,13 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "insert": "npx convex run actions:insertMockData",
-    "randomize": "tsx scripts/randomize.ts",
-    "batchRandomize": "tsx scripts/batchRandomize.ts"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "codegen": "convex codegen",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"(no tests)\" && exit 0",
+    "insert": "npx convex run actions:insertMockData"
   },
   "keywords": [],
   "author": "",
@@ -15,11 +18,9 @@
   "description": "",
   "dependencies": {
     "convex": "^1.25.4",
-    "dotenv": "^16.6.1",
     "next": "^15.4.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "tsx": "^4.20.3",
     "typescript": "^5.9.2"
   },
   "devDependencies": {

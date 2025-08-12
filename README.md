@@ -5,12 +5,12 @@ Got it — here’s the **updated README.md** with the new `altText` + `sceneDes
 ```md
 # Convex Product Randomizer
 
-This is a minimal, monolithic project for managing and querying PLR Notion templates using Convex as a backend and terminal scripts as the interface. It is designed to run inside Replit or locally without needing a frontend or APIs.
+This is a minimal, monolithic project for managing and querying PLR Notion templates using Convex as a backend. It is designed to run inside Replit or locally without needing a complex setup.
 
 ## 📦 Purpose
 
 - Store product data (templates) manually using the Convex UI.
-- Fetch a **random product** or a **batch of 20 random products** using terminal scripts.
+- Fetch a **random product** from Convex.
 - Pass the random product(s) to AI tools like Gemini CLI or Codex for generating:
   - Image prompts
   - SEO copy
@@ -18,7 +18,7 @@ This is a minimal, monolithic project for managing and querying PLR Notion templ
   - Listing metadata
 - Record run stats in Convex for scoring and analysis
 
-No frontend. No API endpoints. Just Convex + CLI.
+Minimal Next.js frontend with Convex as the backend.
 
 ---
 
@@ -31,9 +31,7 @@ convex-randomizer/
 │   ├── schema.ts              # Product schema definition
 │   ├── products.ts            # Query to get all products
 │   └── \_generated/            # Convex auto-generated files
-├── scripts/
-│   ├── randomize.ts           # Script to fetch a random product from Convex
-│   └── batchRandomize.ts      # Script to fetch 20 random products from Convex
+├── app/                      # Next.js app (randomizer page)
 ├── .env.local                 # Convex cloud project info
 ├── randomizerStats (Convex)   # Tracks run stats for scoring
 ├── package.json
@@ -100,18 +98,7 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 
 2. **Insert products** through the dashboard UI.
 
-3. **Run the randomizer scripts:**
-
-   * Single random product:
-
-     ```bash
-     npx tsx scripts/randomize.ts
-     ```
-   * Batch of 20 random products:
-
-     ```bash
-    npx tsx scripts/batchRandomize.ts
-    ```
+3. **Use the randomizer page** to fetch a random product.
    Each run is also stored in Convex via `randomizerStats.insert` to power a scoring system.
 
 4. **Use the output** in prompts for image generation, SEO writing, or markdown documentation.
@@ -123,8 +110,6 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 * [x] Schema defined with `altText` and `sceneDescription` required for all media items
 * [x] Dev server working
 * [x] Manual data entry working
-* [x] Randomizer CLI script for single products
-* [x] Batch randomizer CLI script for 20 products
 * [x] Run stats stored via `randomizerStats.insert`
 * [x] Gemini CLI ready to consume prompt input
 
