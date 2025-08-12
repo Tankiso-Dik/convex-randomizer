@@ -16,6 +16,7 @@ export default function EditProductPage({ params }: { params: Params }) {
   const product = useQuery(api.products.get, { id });
   const update = useMutation(api.products.update);
   const remove = useMutation(api.products.remove);
+  const create = useMutation(api.products.create);
 
   if (product === undefined) return <div>Loading...</div>;
   if (product === null) return <div>Not found</div>;
@@ -30,11 +31,20 @@ export default function EditProductPage({ params }: { params: Params }) {
     router.push("/");
   };
 
+  const handleClone = async () => {
+    const { _id, _creationTime, ...data } = product!;
+    const newId = await create({ ...data });
+    router.push(`/products/${newId}`);
+  };
+
   return (
     <div>
       <h1>Edit Product</h1>
       <ProductForm defaultValues={product} onSubmit={handleSubmit} />
       <button onClick={handleDelete}>Delete</button>
+      <button className="border px-2" onClick={handleClone}>
+        Clone
+      </button>
     </div>
   );
 }
