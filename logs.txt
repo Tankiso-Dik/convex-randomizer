@@ -1,5 +1,0 @@
-Timestamp: 2025-08-06T17:05:36.059Z, ID: j57a7xh4yjmw8cnyrzt5p9q1q17n4rxg, Platform: gumroad
-Timestamp: 2025-08-06T17:05:59.456Z, ID: j572jb985qqzgz2hd0deg693qs7n4gsj, Platform: gumroad
-Timestamp: 2025-08-06T17:06:23.578Z, ID: j572jb985qqzgz2hd0deg693qs7n4gsj, Platform: creativeMarket
-Timestamp: 2025-08-06T17:06:47.025Z, ID: j57c20ncmz42y2faqn2qs1d36d7n4peb, Platform: gumroad
-Timestamp: 2025-08-06T17:07:21.016Z, ID: j572jb985qqzgz2hd0deg693qs7n4gsj, Platform: etsy
