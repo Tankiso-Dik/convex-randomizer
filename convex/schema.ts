@@ -49,4 +49,8 @@ export default defineSchema({
     gifs: v.optional(v.array(v.string())),
     videoUrls: v.optional(v.array(v.string())),
   }),
+  randomizerStats: defineTable({
+    productId: v.id("products"),
+    timestamp: v.number(),
+  }),
 });
