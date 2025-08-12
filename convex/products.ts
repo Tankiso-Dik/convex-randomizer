@@ -3,7 +3,7 @@ import { query, mutation } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
-// ---- Helpers ---------------------------------------------------------------
+/* ------------------------- Helpers ------------------------- */
 
 const PLATFORM_KEYS = [
   "gumroadUrl",
@@ -40,23 +40,20 @@ function assertMediaComplements(
 }
 
 function validatePlatforms(patch: Record<string, unknown>) {
-  // Prefer leaving platform fields unset over storing 'N/A'.
   for (const key of PLATFORM_KEYS) {
     const raw = patch[key] as string | undefined;
-    if (raw == null) continue; // optional
+    if (raw == null) continue;
     const val = raw.trim();
     if (val === "" || val === "N/A") {
-      delete patch[key]; // Omit the key instead of storing "N/A"
+      delete patch[key];
       continue;
     }
-    if (!isHttpsUrl(val)) {
-      throw new Error(`${key} must be a valid https URL`);
-    }
-    patch[key] = val; // normalized
+    if (!isHttpsUrl(val)) throw new Error(`${key} must be a valid https URL`);
+    patch[key] = val;
   }
 }
 
-// ---- Types used by args ----------------------------------------------------
+/* --------------------- Shared validators -------------------- */
 
 const mediaItemValidator = v.object({
   url: v.string(),
@@ -72,30 +69,32 @@ const mediaItemValidator = v.object({
   sceneDescription: v.string(),
 });
 
-// ---- Queries ---------------------------------------------------------------
+/* ------------------------- Queries -------------------------- */
 
-export const get = query({
-  // No args; adjust later if you add filters/pagination
+export const list = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    // Newest first so randomizer “feels fresh” as you add content
     const items = await ctx.db.query("products").order("desc").collect();
     return items;
   },
 });
 
-// Optional: small, fast count query
 export const count = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
     const items = await ctx.db.query("products").collect();
     return items.length;
   },
 });
 
-// ---- Mutations -------------------------------------------------------------
+export const get = query({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id as Id<"products">);
+  },
+});
+
+/* ------------------------ Mutations ------------------------- */
 
 export const create = mutation({
   args: {
@@ -105,7 +104,6 @@ export const create = mutation({
     description: v.string(),
     instructions: v.string(),
 
-    // Optional platform URLs (or "N/A")
     gumroadUrl: v.optional(v.string()),
     etsyUrl: v.optional(v.string()),
     creativeMarketUrl: v.optional(v.string()),
@@ -121,7 +119,6 @@ export const create = mutation({
 
     media: v.array(mediaItemValidator),
 
-    // Legacy (optional, for migration)
     imagePolished: v.optional(v.array(v.string())),
     screenshots: v.optional(v.array(v.string())),
     gifs: v.optional(v.array(v.string())),
@@ -129,23 +126,18 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new ConvexError("Unauthorized");
-    }
+    if (!identity) throw new ConvexError("Unauthorized");
 
-    // Validate complements
     assertMediaComplements(args.media as any);
 
-    // Normalize/validate platform URLs
     const patch: Record<string, unknown> = { ...args };
     validatePlatforms(patch);
 
-    // Trim some core strings
-    patch.listingName = (args.listingName || "").trim();
-    patch.officialName = (args.officialName || "").trim();
-    patch.shortDescription = (args.shortDescription || "").trim();
-    patch.description = (args.description || "").trim();
-    patch.instructions = (args.instructions || "").trim();
+    patch.listingName = args.listingName.trim();
+    patch.officialName = args.officialName.trim();
+    patch.shortDescription = args.shortDescription.trim();
+    patch.description = args.description.trim();
+    patch.instructions = args.instructions.trim();
 
     const id = await ctx.db.insert("products", patch as any);
     return id;
@@ -185,17 +177,11 @@ export const update = mutation({
   },
   handler: async (ctx, { id, patch }) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new ConvexError("Unauthorized");
-    }
+    if (!identity) throw new ConvexError("Unauthorized");
 
-    // Validate complements if media is present
     if (patch.media) assertMediaComplements(patch.media as any);
-
-    // Validate/normalize platform URLs if provided
     validatePlatforms(patch as any);
 
-    // Trim changed core strings if provided
     if (patch.listingName) patch.listingName = patch.listingName.trim();
     if (patch.officialName) patch.officialName = patch.officialName.trim();
     if (patch.shortDescription) patch.shortDescription = patch.shortDescription.trim();
@@ -203,52 +189,15 @@ export const update = mutation({
     if (patch.instructions) patch.instructions = patch.instructions.trim();
 
     await ctx.db.patch(id as Id<"products">, patch as any);
-    return { ok: true };
-  },
-});
-
-export const getById = query({
-  args: { id: v.id("products") },
-  handler: async (ctx, { id }) => {
-    return await ctx.db.get(id as Id<"products">);
-  },
-});
-
-export const upsert = mutation({
-  args: {
-    id: v.optional(v.id("products")),
-    listingName: v.string(),
-    officialName: v.string(),
-    shortDescription: v.string(),
-    description: v.string(),
-    instructions: v.string(),
-    features: v.array(v.string()),
-    categories: v.array(v.string()),
-    tags: v.array(v.string()),
-    gumroadUrl: v.optional(v.string()),
-    etsyUrl: v.optional(v.string()),
-    creativeMarketUrl: v.optional(v.string()),
-    notionUrl: v.optional(v.string()),
-    notionery: v.optional(v.string()),
-    notionEverything: v.optional(v.string()),
-    prototion: v.optional(v.string()),
-    notionLand: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    if (args.id) {
-      const { id, ...patch } = args;
-      await ctx.db.patch(id as Id<"products">, patch);
-      return id;
-    }
-    const { id: _id, ...doc } = args;
-    const newId = await ctx.db.insert("products", doc);
-    return newId;
+    return id;
   },
 });
 
 export const remove = mutation({
   args: { id: v.id("products") },
   handler: async (ctx, { id }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("Unauthorized");
     await ctx.db.delete(id as Id<"products">);
     return { ok: true };
   },

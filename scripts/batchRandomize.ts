@@ -81,7 +81,7 @@ function warnIfMediaIncomplete(media?: MediaItem[]) {
 }
 
 async function main(): Promise<void> {
-  const products = (await convex.query(api.products.get)) as Product[];
+  const products = (await convex.query(api.products.list)) as Product[];
   if (!products || products.length === 0) {
     console.log("No products found.");
     return;

@@ -74,7 +74,7 @@ async function main(): Promise<void> {
   const args = new Set(process.argv.slice(2));
   const apply = args.has("--apply");
 
-  const products = (await convex.query(api.products.get)) as Product[];
+  const products = (await convex.query(api.products.list)) as Product[];
   if (!products || products.length === 0) {
     console.log("No products found.");
     return;
@@ -117,7 +117,7 @@ async function main(): Promise<void> {
       continue;
     }
 
-    await convex.mutation(api.products.update, {
+    await convex.mutation(api.products.upsert, {
       id: product._id as any, // runtime id is fine
       patch: {
         media: mergedMedia,
