@@ -13,19 +13,15 @@ interface Params {
 export default function EditProductPage({ params }: { params: Params }) {
   const router = useRouter();
   const id = params.id as Id<"products">;
-  const product = useQuery(api.products.getById, { id });
-  const upsert = useMutation(api.products.upsert);
+  const product = useQuery(api.products.get, { id });
+  const update = useMutation(api.products.update);
   const remove = useMutation(api.products.remove);
 
-  if (product === undefined) {
-    return <div>Loading...</div>;
-  }
-  if (product === null) {
-    return <div>Not found</div>;
-  }
+  if (product === undefined) return <div>Loading...</div>;
+  if (product === null) return <div>Not found</div>;
 
   const handleSubmit = async (values: ProductFormValues) => {
-    await upsert({ id, ...values });
+    await update({ id, patch: values });
     router.push(`/products/${id}`);
   };
 
@@ -42,4 +38,3 @@ export default function EditProductPage({ params }: { params: Params }) {
     </div>
   );
 }
-

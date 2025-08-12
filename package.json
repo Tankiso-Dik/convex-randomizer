@@ -12,9 +12,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@auth/core": "^0.40.0",
-    "@auth/nextjs": "^0.0.0-380f8d56",
-    "@convex-dev/auth": "^0.0.88",
     "convex": "^1.25.4",
     "dotenv": "^16.6.1",
     "next": "^15.4.6",

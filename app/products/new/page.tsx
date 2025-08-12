@@ -7,10 +7,10 @@ import ProductForm, { ProductFormValues } from "../../components/ProductForm";
 
 export default function NewProductPage() {
   const router = useRouter();
-  const upsert = useMutation(api.products.upsert);
+  const create = useMutation(api.products.create);
 
   const handleSubmit = async (values: ProductFormValues) => {
-    const id = await upsert(values);
+    const id = await create(values);
     router.push(`/products/${id}`);
   };
 
@@ -21,4 +21,3 @@ export default function NewProductPage() {
     </div>
   );
 }
-
