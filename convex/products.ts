@@ -66,7 +66,10 @@ export const update = mutation({
   },
   handler: async (ctx, { id, patch }) => {
     trimAndOmitEmpty(patch as any);
-    await ctx.db.patch(id as Id<"products">, patch as any);
+    await ctx.db.patch(
+      id as Id<"products">,
+      { ...patch, media: patch.media ?? [] } as any
+    );
     return id;
   },
 });
