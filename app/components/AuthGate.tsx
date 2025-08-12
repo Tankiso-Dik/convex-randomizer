@@ -1,7 +1,7 @@
 "use client";
 import { ReactNode, useState, useEffect, FormEvent } from "react";
 
-const PASSWORD = "admin";
+const PASSWORD = "PaperMoon";
 
 export default function AuthGate({ children }: { children?: ReactNode }) {
   const [allowed, setAllowed] = useState(false);
