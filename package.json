@@ -9,8 +9,7 @@
     "start": "next start",
     "codegen": "convex codegen",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"(no tests)\" && exit 0",
-    "insert": "npx convex run actions:insertMockData"
+    "test": "echo \"(no tests)\" && exit 0"
   },
   "keywords": [],
   "author": "",
