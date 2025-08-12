@@ -206,3 +206,50 @@ export const update = mutation({
     return { ok: true };
   },
 });
+
+export const getById = query({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id as Id<"products">);
+  },
+});
+
+export const upsert = mutation({
+  args: {
+    id: v.optional(v.id("products")),
+    listingName: v.string(),
+    officialName: v.string(),
+    shortDescription: v.string(),
+    description: v.string(),
+    instructions: v.string(),
+    features: v.array(v.string()),
+    categories: v.array(v.string()),
+    tags: v.array(v.string()),
+    gumroadUrl: v.optional(v.string()),
+    etsyUrl: v.optional(v.string()),
+    creativeMarketUrl: v.optional(v.string()),
+    notionUrl: v.optional(v.string()),
+    notionery: v.optional(v.string()),
+    notionEverything: v.optional(v.string()),
+    prototion: v.optional(v.string()),
+    notionLand: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.id) {
+      const { id, ...patch } = args;
+      await ctx.db.patch(id as Id<"products">, patch);
+      return id;
+    }
+    const { id: _id, ...doc } = args;
+    const newId = await ctx.db.insert("products", doc);
+    return newId;
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id as Id<"products">);
+    return { ok: true };
+  },
+});
