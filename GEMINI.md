@@ -13,10 +13,10 @@ It is the source of truth used by Gemini CLI and other downstream agents (Codex,
 
 ## 🎯 Project Purpose
 
-The Convex Product Randomizer is a zero-frontend, script-first system that:
+The Convex Product Randomizer is a minimal system that:
 
 - Stores PLR Notion template product data in a Convex database
-- Allows terminal scripts to fetch random products from the DB
+- Allows fetching random products from the DB
 - Randomly selects a valid marketplace platform (excluding `"N/A"`)
 - Outputs the enriched product with `selectedPlatform` and `selectedUrl`
 - Logs the result into `logs.txt` (last 20 entries only)
@@ -91,21 +91,11 @@ This project is designed for use without a frontend, and may be run on local mac
 
 ## 🔁 Randomizer Behavior
 
-**Script:** `scripts/randomize.ts`
-
 * Selects a single random product from Convex
 * Filters out platform fields with `"N/A"`
 * Picks one valid platform at random
-* Outputs `selectedPlatform` and `selectedUrl` to stdout
+* Outputs `selectedPlatform` and `selectedUrl`
 * Appends the run to `logs.txt` (max 20 entries)
-
-**Script:** `scripts/batchRandomize.ts`
-
-* Selects 20 random products (no duplicates)
-* Filters platforms as above
-* Picks one valid platform per product (or `"N/A"` if none)
-* Writes all 20 runs to `logs.txt` (replaces older entries)
-* Outputs all enriched products as a JSON array
 
 ---
 
@@ -123,7 +113,7 @@ This project is designed for use without a frontend, and may be run on local mac
 
 ## 🤖 Gemini CLI Integration
 
-The output of `randomize.ts` or `batchRandomize.ts` is passed into:
+Randomizer output is passed into:
 
 * **Makeover GPT** → Generates visual identity, themes, prompts
 * **Product Preparer GPT** → Generates SEO, instructions, categories, alt text
@@ -153,7 +143,7 @@ Gemini CLI must:
 This project is working as intended when:
 
 * Schema matches `schema.ts`
-* Scripts run without errors
+* Randomizer runs without errors
 * All randomizer outputs are valid and meet the above contracts
 * Downstream GPTs consume outputs without manual fixes
 
