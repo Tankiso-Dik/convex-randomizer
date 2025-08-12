@@ -2,6 +2,17 @@ import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
+const PLATFORM_KEYS = [
+  "gumroadUrl",
+  "etsyUrl",
+  "creativeMarketUrl",
+  "notionUrl",
+  "notionery",
+  "notionEverything",
+  "prototion",
+  "notionLand",
+] as const;
+
 export const randomize = mutation({
   args: {},
   handler: async (ctx) => {
@@ -10,6 +21,19 @@ export const randomize = mutation({
       throw new Error("No products available");
     }
     const product = products[Math.floor(Math.random() * products.length)];
+
+    const validPlatforms = PLATFORM_KEYS.filter((key) => {
+      const url = (product as any)[key];
+      return typeof url === "string" && url.trim() !== "" && url.trim().toLowerCase() !== "n/a";
+    });
+    const chosenPlatform =
+      validPlatforms[Math.floor(Math.random() * validPlatforms.length)] ?? null;
+
+    console.log("Randomizer selection", {
+      productId: product._id,
+      platform: chosenPlatform,
+    });
+
     await ctx.db.insert("randomizerStats", {
       productId: product._id as Id<"products">,
       timestamp: Date.now(),
