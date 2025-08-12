@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as products from "../products.js";
+import type * as randomizer from "../randomizer.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -25,6 +26,7 @@ import type * as products from "../products.js";
  */
 declare const fullApi: ApiFromModules<{
   products: typeof products;
+  randomizer: typeof randomizer;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
