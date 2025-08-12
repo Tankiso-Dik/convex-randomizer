@@ -74,80 +74,26 @@ const mediaItemValidator = v.object({
 
 // ---- Queries ---------------------------------------------------------------
 
-export const get = query({
-  // No args; adjust later if you add filters/pagination
+export const list = query({
   args: {},
   handler: async (ctx) => {
-    // Newest first so randomizer “feels fresh” as you add content
     const items = await ctx.db.query("products").order("desc").collect();
     return items;
   },
 });
 
-// Optional: small, fast count query
-export const count = query({
-  args: {},
-  handler: async (ctx) => {
-    const items = await ctx.db.query("products").collect();
-    return items.length;
+export const get = query({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    return await ctx.db.get(id);
   },
 });
 
 // ---- Mutations -------------------------------------------------------------
 
-export const create = mutation({
+export const upsert = mutation({
   args: {
-    listingName: v.string(),
-    officialName: v.string(),
-    shortDescription: v.string(),
-    description: v.string(),
-    instructions: v.string(),
-
-    // Optional platform URLs (or "N/A")
-    gumroadUrl: v.optional(v.string()),
-    etsyUrl: v.optional(v.string()),
-    creativeMarketUrl: v.optional(v.string()),
-    notionUrl: v.optional(v.string()),
-    notionery: v.optional(v.string()),
-    notionEverything: v.optional(v.string()),
-    prototion: v.optional(v.string()),
-    notionLand: v.optional(v.string()),
-
-    features: v.array(v.string()),
-    categories: v.array(v.string()),
-    tags: v.array(v.string()),
-
-    media: v.array(mediaItemValidator),
-
-    // Legacy (optional, for migration)
-    imagePolished: v.optional(v.array(v.string())),
-    screenshots: v.optional(v.array(v.string())),
-    gifs: v.optional(v.array(v.string())),
-    videoUrls: v.optional(v.array(v.string())),
-  },
-  handler: async (ctx, args) => {
-    // Validate complements
-    assertMediaComplements(args.media as any);
-
-    // Normalize/validate platform URLs
-    const patch: Record<string, unknown> = { ...args };
-    validatePlatforms(patch);
-
-    // Trim some core strings
-    patch.listingName = (args.listingName || "").trim();
-    patch.officialName = (args.officialName || "").trim();
-    patch.shortDescription = (args.shortDescription || "").trim();
-    patch.description = (args.description || "").trim();
-    patch.instructions = (args.instructions || "").trim();
-
-    const id = await ctx.db.insert("products", patch as any);
-    return id;
-  },
-});
-
-export const update = mutation({
-  args: {
-    id: v.id("products"),
+    id: v.optional(v.id("products")),
     patch: v.object({
       listingName: v.optional(v.string()),
       officialName: v.optional(v.string()),
@@ -177,20 +123,44 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, { id, patch }) => {
-    // Validate complements if media is present
     if (patch.media) assertMediaComplements(patch.media as any);
-
-    // Validate/normalize platform URLs if provided
     validatePlatforms(patch as any);
 
-    // Trim changed core strings if provided
     if (patch.listingName) patch.listingName = patch.listingName.trim();
     if (patch.officialName) patch.officialName = patch.officialName.trim();
     if (patch.shortDescription) patch.shortDescription = patch.shortDescription.trim();
     if (patch.description) patch.description = patch.description.trim();
     if (patch.instructions) patch.instructions = patch.instructions.trim();
 
+    if (!id) {
+      const required = [
+        "listingName",
+        "officialName",
+        "shortDescription",
+        "description",
+        "instructions",
+        "features",
+        "categories",
+        "tags",
+        "media",
+      ] as const;
+      for (const field of required) {
+        if ((patch as any)[field] == null) {
+          throw new Error(`${field} is required`);
+        }
+      }
+      const newId = await ctx.db.insert("products", patch as any);
+      return newId;
+    }
     await ctx.db.patch(id as Id<"products">, patch as any);
+    return id;
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("products") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.delete(id as Id<"products">);
     return { ok: true };
   },
 });
