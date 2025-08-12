@@ -1,6 +1,6 @@
 // convex/products.ts
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
 // ---- Helpers ---------------------------------------------------------------
@@ -78,6 +78,7 @@ export const get = query({
   // No args; adjust later if you add filters/pagination
   args: {},
   handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
     // Newest first so randomizer “feels fresh” as you add content
     const items = await ctx.db.query("products").order("desc").collect();
     return items;
@@ -88,6 +89,7 @@ export const get = query({
 export const count = query({
   args: {},
   handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
     const items = await ctx.db.query("products").collect();
     return items.length;
   },
@@ -126,6 +128,11 @@ export const create = mutation({
     videoUrls: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Unauthorized");
+    }
+
     // Validate complements
     assertMediaComplements(args.media as any);
 
@@ -177,6 +184,11 @@ export const update = mutation({
     }),
   },
   handler: async (ctx, { id, patch }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new ConvexError("Unauthorized");
+    }
+
     // Validate complements if media is present
     if (patch.media) assertMediaComplements(patch.media as any);
 
