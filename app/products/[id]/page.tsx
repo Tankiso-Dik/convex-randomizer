@@ -21,7 +21,7 @@ export default function EditProductPage({ params }: { params: Params }) {
   if (product === null) return <div>Not found</div>;
 
   const handleSubmit = async (values: ProductFormValues) => {
-    await update({ id, patch: values });
+    await update({ id, patch: { ...values, media: values.media ?? [] } });
     router.push(`/products/${id}`);
   };
 
