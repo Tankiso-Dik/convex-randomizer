@@ -18,11 +18,9 @@
   "description": "",
   "dependencies": {
     "convex": "^1.25.4",
-    "dotenv": "^16.6.1",
     "next": "^15.4.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "tsx": "^4.20.3",
     "typescript": "^5.9.2"
   },
   "devDependencies": {
