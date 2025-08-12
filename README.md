@@ -103,6 +103,10 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 
 4. **Use the output** in prompts for image generation, SEO writing, or markdown documentation.
 
+## 🩺 Health Check
+
+The endpoint `/api/health` returns `{ "ok": true }` and can be used by deployment monitoring services to verify the app is running.
+
 ---
 
 ## ✅ Done
