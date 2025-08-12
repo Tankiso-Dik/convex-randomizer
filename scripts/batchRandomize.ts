@@ -3,7 +3,6 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 import dotenv from "dotenv";
 import path from "path";
-import fs from "fs";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
@@ -95,7 +94,6 @@ async function main(): Promise<void> {
     selected.add(Math.floor(Math.random() * products.length));
   }
 
-  const logs: string[] = [];
   const results: Product[] = [];
 
   for (const idx of selected) {
@@ -108,28 +106,17 @@ async function main(): Promise<void> {
     (product as any).selectedPlatform = selection ? selection.platform : "N/A";
     (product as any).selectedUrl = selection ? selection.url : "";
 
-    logs.push(
-      `Timestamp: ${new Date().toISOString()}, ID: ${product._id ?? "unknown"}, Platform: ${(product as any).selectedPlatform}`
-    );
+    // Record run for scoring
+    await convex.mutation(api.randomizerStats.insert, {
+      productId: product._id ?? "unknown",
+      platform: (product as any).selectedPlatform,
+    });
 
     results.push(product);
   }
 
   // Output enriched products
   console.log(JSON.stringify(results, null, 2));
-
-  // Append logs and keep only the last 20 lines TOTAL
-  const logPath = path.join(process.cwd(), "logs.txt");
-  let existingLines: string[] = [];
-  try {
-    const existing = fs.readFileSync(logPath, "utf-8");
-    existingLines = existing.trim().split("\n").filter(Boolean);
-  } catch {
-    // no existing logs yet
-  }
-
-  const updated = [...logs, ...existingLines].slice(0, 20).join("\n") + "\n";
-  fs.writeFileSync(logPath, updated);
 }
 
 main().catch((err) => {

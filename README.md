@@ -16,6 +16,7 @@ This is a minimal, monolithic project for managing and querying PLR Notion templ
   - SEO copy
   - Product descriptions
   - Listing metadata
+- Record run stats in Convex for scoring and analysis
 
 No frontend. No API endpoints. Just Convex + CLI.
 
@@ -34,7 +35,7 @@ convex-randomizer/
 │   ├── randomize.ts           # Script to fetch a random product from Convex
 │   └── batchRandomize.ts      # Script to fetch 20 random products from Convex
 ├── .env.local                 # Convex cloud project info
-├── logs.txt                   # Log file for the last 20 runs
+├── randomizerStats (Convex)   # Tracks run stats for scoring
 ├── package.json
 ├── tsconfig.json
 ├── README.md                  # You're reading this
@@ -109,8 +110,9 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
    * Batch of 20 random products:
 
      ```bash
-     npx tsx scripts/batchRandomize.ts
-     ```
+    npx tsx scripts/batchRandomize.ts
+    ```
+   Each run is also stored in Convex via `randomizerStats.insert` to power a scoring system.
 
 4. **Use the output** in prompts for image generation, SEO writing, or markdown documentation.
 
@@ -123,7 +125,7 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 * [x] Manual data entry working
 * [x] Randomizer CLI script for single products
 * [x] Batch randomizer CLI script for 20 products
-* [x] Logging implemented with rotation
+* [x] Run stats stored via `randomizerStats.insert`
 * [x] Gemini CLI ready to consume prompt input
 
 ---
