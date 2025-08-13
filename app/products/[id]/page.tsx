@@ -37,14 +37,50 @@ export default function EditProductPage({ params }: { params: Params }) {
     router.push(`/products/${newId}`);
   };
 
+  const json = JSON.stringify(product, null, 2);
+
+  const copyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(json);
+      alert("Copied JSON to clipboard");
+    } catch {}
+  };
+
+  const downloadJson = () => {
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div>
+    <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr", padding: 12 }}>
       <h1>Edit Product</h1>
-      <ProductForm defaultValues={product} onSubmit={handleSubmit} />
-      <button onClick={handleDelete}>Delete</button>
-      <button className="border px-2" onClick={handleClone}>
-        Clone
-      </button>
+      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr", alignItems: "start" }}>
+        <div>
+          <ProductForm defaultValues={product} onSubmit={handleSubmit} />
+          <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+            <button onClick={handleDelete}>Delete</button>
+            <button className="border px-2" onClick={handleClone}>Clone</button>
+          </div>
+        </div>
+
+        <div style={{ border: "1px solid #333", borderRadius: 6, padding: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <strong>JSON Preview</strong>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={copyJson}>Copy</button>
+              <button onClick={downloadJson}>Download</button>
+            </div>
+          </div>
+          <pre style={{ marginTop: 8, whiteSpace: "pre-wrap", overflowX: "auto" }}>
+            {json}
+          </pre>
+        </div>
+      </div>
     </div>
   );
 }

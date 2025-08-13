@@ -1,0 +1,5 @@
+:root { --bg: #0b0e14; --fg: #e6e6e6; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); }
+*, *::before, *::after { box-sizing: border-box; }
+a { text-decoration: none; }
+button { cursor: pointer; }

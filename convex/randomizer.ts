@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 const PLATFORM_KEYS = [
@@ -56,6 +56,17 @@ export const randomize = mutation({
       validPlatforms[Math.floor(Math.random() * validPlatforms.length)] ?? null;
     const platformUrl = platformKey ? (product as any)[platformKey] : null;
 
+    // Optionally record a stat (behind env toggle)
+    try {
+      // @ts-ignore Convex functions run on Node; process is available
+      if (process.env.RANDOMIZER_STATS === "1") {
+        await ctx.db.insert("randomizerStats", {
+          productId: (product as any)._id,
+          timestamp: Date.now(),
+        } as any);
+      }
+    } catch {}
+
     // Return product + chosen platform
     return {
       product,
@@ -63,5 +74,38 @@ export const randomize = mutation({
       platformUrl,
       seed: seed ?? null,
     };
+  },
+});
+
+// Return counts for the most recent N picks with product attached
+export const recentCounts = query({
+  args: { limit: v.number() },
+  handler: async (ctx, { limit }) => {
+    const recent = await ctx.db
+      .query("randomizerStats")
+      .withIndex("by_time")
+      .order("desc")
+      .take(Math.max(0, Math.min(limit, 500)));
+
+    const counts = new Map<string, number>();
+    for (const row of recent as any[]) {
+      const id = row.productId.id ?? row.productId; // tolerate shape
+      const key = String(id);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    const result: { count: number; product: any }[] = [];
+    for (const [key, count] of counts) {
+      const product = await ctx.db.get({
+        // Convex Id type: coerce using as any; generated types available at call sites
+        table: "products",
+        id: key as any,
+      } as any);
+      if (product) result.push({ count, product });
+    }
+
+    // sort desc by count
+    result.sort((a, b) => b.count - a.count);
+    return result;
   },
 });

@@ -60,4 +60,11 @@ export default defineSchema({
     .index("by_notionEverything", ["notionEverything"])
     .index("by_prototion", ["prototion"])
     .index("by_notionLand", ["notionLand"]),
+
+  randomizerStats: defineTable({
+    productId: v.id("products"),
+    timestamp: v.number(),
+  })
+    .index("by_product", ["productId"]) 
+    .index("by_time", ["timestamp"]),
 });

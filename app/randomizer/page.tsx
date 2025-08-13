@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "../../lib/convexClient";
 import { useSearchParams } from "next/navigation";
 import { api } from "../../convex/_generated/api";
 
@@ -14,6 +14,7 @@ type RandomizeResult = {
 
 export default function RandomizerPage() {
   const randomize = useMutation(api.randomizer.randomize);
+  const recent = useQuery(api.randomizer.recentCounts, { limit: 50 });
   const searchParams = useSearchParams();
   const seed = searchParams.get("seed") ?? undefined;
 
@@ -66,6 +67,25 @@ export default function RandomizerPage() {
           )}
         </div>
       )}
+
+      <div style={{ marginTop: 24 }}>
+        <details>
+          <summary>Recent picks (last 50)</summary>
+          <div style={{ marginTop: 8 }}>
+            {!recent?.length ? (
+              <small>No recent stats</small>
+            ) : (
+              <ul style={{ paddingLeft: 16 }}>
+                {recent.slice(0, 10).map((row: any, idx: number) => (
+                  <li key={idx}>
+                    <strong>{row.count}</strong> — {row.product?.listingName ?? "Untitled"}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </details>
+      </div>
     </div>
   );
 }

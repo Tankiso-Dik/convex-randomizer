@@ -3,9 +3,11 @@ Got it — here’s the **updated README.md** with the new `altText` + `sceneDes
 ---
 
 ```md
-# Convex Product Randomizer
+# Product Image Studio — Personal CRM + Randomizer
 
-This is a minimal, monolithic project for managing and querying PLR Notion templates using Convex as a backend. It is designed to run inside Replit or locally without needing a complex setup.
+A personal Next.js + Convex tool:
+- `/products`: lightweight CRM for listing/creating/editing products, with JSON import/export and inline JSON preview.
+- `/randomizer`: picks a published product with a valid platform URL (Etsy/CM/etc). Supports `?seed=...` for deterministic picks.
 
 ## 📦 Purpose
 
@@ -27,11 +29,14 @@ Minimal Next.js frontend with Convex as the backend.
 
 convex-randomizer/
 ├── convex/
-│   ├── schema.ts              # Product schema definition
-│   ├── products.ts            # Query to get all products
-│   └── \_generated/            # Convex auto-generated files
-├── app/                      # Next.js app (randomizer page)
-├── .env.local                 # Convex cloud project info
+│   ├── schema.ts              # Product + randomizerStats schema definitions
+│   ├── products.ts            # CRUD + seed
+│   ├── randomizer.ts          # Randomize + recentCounts (optional stats)
+│   └── _generated/            # Convex auto-generated files
+├── app/                       # Next.js app (products + randomizer)
+├── lib/convexClient.ts        # Convex provider + hook exports
+├── middleware.ts              # Basic Auth for /products (optional)
+├── render.yaml                # Render deploy blueprint
 ├── package.json
 ├── tsconfig.json
 ├── README.md                  # You're reading this
@@ -49,6 +54,9 @@ NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 ```
 
 Client-side code should reference this via `process.env.NEXT_PUBLIC_CONVEX_URL`. The `CONVEX_DEPLOYMENT` variable may remain for the Convex CLI but is not used in frontend code.
+
+### Randomizer Stats (optional)
+Set `RANDOMIZER_STATS=1` to enable collection of recent randomizer picks. Without it, nothing is collected. When enabled, `/randomizer` shows a small recent-picks panel.
 
 ---
 
@@ -104,6 +112,8 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 
    ```bash
    npx convex dev
+   # After schema changes:
+   npx convex push
    ```
 
 2. **Insert products** through the dashboard UI.

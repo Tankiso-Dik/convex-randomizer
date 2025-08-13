@@ -23,6 +23,20 @@ const platformFields = {
   prototion: v.optional(v.string()), notionLand: v.optional(v.string()),
 };
 
+export const mediaItem = v.object({
+  url: v.string(),
+  type: v.union(
+    v.literal("thumbnail"),
+    v.literal("screenshot"),
+    v.literal("banner"),
+    v.literal("video"),
+    v.literal("gif"),
+    v.literal("icon")
+  ),
+  altText: v.string(),
+  sceneDescription: v.string(),
+});
+
 const baseArgs = {
   listingName: v.string(),
   officialName: v.string(),
@@ -34,8 +48,7 @@ const baseArgs = {
   features: v.array(v.string()),
   categories: v.array(v.string()),
   tags: v.array(v.string()),
-  media: v.optional(v.array(v.any())),
-  published: v.optional(v.boolean()),
+  media: v.optional(v.array(mediaItem)),
 };
 
 export const list = query({ args: {}, handler: (ctx) => ctx.db.query("products").collect() });
@@ -68,8 +81,7 @@ export const update = mutation({
       features: v.optional(v.array(v.string())),
       categories: v.optional(v.array(v.string())),
       tags: v.optional(v.array(v.string())),
-      media: v.optional(v.array(v.any())),
-      published: v.optional(v.boolean()),
+      media: v.optional(v.array(mediaItem)),
     }),
   },
   handler: async (ctx, { id, patch }) => {
@@ -91,16 +103,25 @@ export const remove = mutation({
 });
 
 export const seed = mutation({
-  args: { products: v.array(v.object(baseArgs)) },
+  args: {
+    products: v.array(
+      v.object({
+        ...baseArgs,
+        published: v.optional(v.boolean()),
+      })
+    ),
+  },
   handler: async (ctx, { products }) => {
     const ids: Id<"products">[] = [];
     for (const product of products) {
       const copy = { ...product } as any;
       trimAndOmitEmpty(copy);
+      if (copy.published === undefined) copy.published = false;
+      if (!Array.isArray(copy.media)) copy.media = [];
       ids.push(
         await ctx.db.insert("products", {
           ...copy,
-          media: copy.media ?? [],
+          media: copy.media,
         })
       );
     }
