@@ -1,6 +1,5 @@
-import { mutation, query } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
 
 const PLATFORM_KEYS = [
   "gumroadUrl",
@@ -39,12 +38,9 @@ export const randomize = mutation({
     }
 
     // Choose product index (deterministic if seed provided)
-    let index: number;
-    if (seed) {
-      index = hash32(seed) % products.length;
-    } else {
-      index = Math.floor(Math.random() * products.length);
-    }
+    const index = seed
+      ? (hash32(seed) % products.length)
+      : Math.floor(Math.random() * products.length);
 
     const product = products[index];
 
@@ -52,66 +48,16 @@ export const randomize = mutation({
     const validPlatforms = PLATFORM_KEYS.filter((key) =>
       isValidLink((product as any)[key])
     );
-
-    // This should exist by construction, but guard anyway
     const platformKey =
       validPlatforms[Math.floor(Math.random() * validPlatforms.length)] ?? null;
-
     const platformUrl = platformKey ? (product as any)[platformKey] : null;
 
-    // Lightweight telemetry (safe to keep or remove)
-    console.log("Randomizer selection", {
-      productId: product._id,
-      platformKey,
-    });
-
-    // Log pick
-    await ctx.db.insert("randomizerStats", {
-      productId: product._id as Id<"products">,
-      timestamp: Date.now(),
-    });
-
-    // Return both product and the chosen platform
+    // Return both product and chosen platform (no analytics/stat writes)
     return {
       product,
       platformKey,
       platformUrl,
       seed: seed ?? null,
     };
-  },
-});
-
-export const recentStats = query({
-  args: { limit: v.number() },
-  handler: async (ctx, { limit }) => {
-    const entries = await ctx.db
-      .query("randomizerStats")
-      .order("desc")
-      .take(limit);
-    const counts: Record<string, { count: number; product: any }> = {};
-    for (const e of entries) {
-      const prod = await ctx.db.get(e.productId);
-      if (!prod) continue;
-      const key = e.productId as unknown as string;
-      if (!counts[key]) counts[key] = { count: 0, product: prod };
-      counts[key].count += 1;
-    }
-    return Object.values(counts);
-  },
-});
-
-export const summaryStats = query({
-  args: {},
-  handler: async (ctx) => {
-    const entries = await ctx.db.query("randomizerStats").collect();
-    const counts: Record<string, { count: number; product: any }> = {};
-    for (const e of entries) {
-      const prod = await ctx.db.get(e.productId);
-      if (!prod) continue;
-      const key = e.productId as unknown as string;
-      if (!counts[key]) counts[key] = { count: 0, product: prod };
-      counts[key].count += 1;
-    }
-    return Object.values(counts);
   },
 });

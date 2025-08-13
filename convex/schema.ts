@@ -50,6 +50,7 @@ export default defineSchema({
     gifs: v.optional(v.array(v.string())),
     videoUrls: v.optional(v.array(v.string())),
   })
+    // Minimal useful indexes (tune later as real filters emerge)
     .index("by_published", ["published"])
     .index("by_gumroadUrl", ["gumroadUrl"])
     .index("by_etsyUrl", ["etsyUrl"])
@@ -59,8 +60,4 @@ export default defineSchema({
     .index("by_notionEverything", ["notionEverything"])
     .index("by_prototion", ["prototion"])
     .index("by_notionLand", ["notionLand"]),
-  randomizerStats: defineTable({
-    productId: v.id("products"),
-    timestamp: v.number(),
-  }),
 });
