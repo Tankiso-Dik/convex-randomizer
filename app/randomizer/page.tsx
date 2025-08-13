@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "../../lib/convexClient";
 import { api } from "../../convex/_generated/api";
 
 const PLATFORM_KEYS = [

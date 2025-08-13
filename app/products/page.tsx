@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useQuery } from "../../lib/convexClient";
 import { api } from "../../convex/_generated/api";
 import { downloadJson } from "../utils/downloadJson";
 
