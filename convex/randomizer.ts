@@ -5,7 +5,22 @@ import { Id } from "./_generated/dataModel";
 export const randomize = mutation({
   args: {},
   handler: async (ctx) => {
-    const products = await ctx.db.query("products").collect();
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_published", (q) => q.eq("published", true))
+      .filter((q) =>
+        q.or(
+          q.neq(q.field("gumroadUrl"), undefined),
+          q.neq(q.field("etsyUrl"), undefined),
+          q.neq(q.field("creativeMarketUrl"), undefined),
+          q.neq(q.field("notionUrl"), undefined),
+          q.neq(q.field("notionery"), undefined),
+          q.neq(q.field("notionEverything"), undefined),
+          q.neq(q.field("prototion"), undefined),
+          q.neq(q.field("notionLand"), undefined)
+        )
+      )
+      .collect();
     if (products.length === 0) {
       throw new Error("No products available");
     }

@@ -26,6 +26,8 @@ export default defineSchema({
     categories: v.array(v.string()),
     tags: v.array(v.string()),
 
+    published: v.boolean(),
+
     // Canonical media store (mandatory complements)
     media: v.array(
       v.object({
@@ -48,7 +50,7 @@ export default defineSchema({
     screenshots: v.optional(v.array(v.string())),
     gifs: v.optional(v.array(v.string())),
     videoUrls: v.optional(v.array(v.string())),
-  }),
+  }).index("by_published", ["published"]),
   randomizerStats: defineTable({
     productId: v.id("products"),
     timestamp: v.number(),
