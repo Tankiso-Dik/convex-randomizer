@@ -43,11 +43,6 @@ export default defineSchema({
       })
     ),
 
-    // Legacy arrays (for migration only; remove after backfill)
-    imagePolished: v.optional(v.array(v.string())),
-    screenshots: v.optional(v.array(v.string())),
-    gifs: v.optional(v.array(v.string())),
-    videoUrls: v.optional(v.array(v.string())),
   }),
   randomizerStats: defineTable({
     productId: v.id("products"),
