@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { useSearchParams } from "next/navigation";
 import { api } from "../../convex/_generated/api";
 
 const PLATFORM_KEYS = [
@@ -20,9 +21,11 @@ export default function RandomizerPage() {
   const recent = useQuery(api.randomizer.recentStats, { limit: 20 }) || [];
   const summary = useQuery(api.randomizer.summaryStats) || [];
   const [current, setCurrent] = useState<any>(null);
+  const searchParams = useSearchParams();
+  const seed = searchParams.get("seed") ?? undefined;
 
   const run = async () => {
-    const result = await randomize();
+    const result = await randomize(seed ? { seed } : {});
     setCurrent(result);
   };
 
