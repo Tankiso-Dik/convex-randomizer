@@ -29,6 +29,7 @@ const baseArgs = {
   shortDescription: v.string(),
   description: v.string(),
   instructions: v.string(),
+  published: v.boolean(),
   ...platformFields,
   features: v.array(v.string()),
   categories: v.array(v.string()),
@@ -57,6 +58,7 @@ export const update = mutation({
       shortDescription: v.optional(v.string()),
       description: v.optional(v.string()),
       instructions: v.optional(v.string()),
+      published: v.optional(v.boolean()),
       ...platformFields,
       features: v.optional(v.array(v.string())),
       categories: v.optional(v.array(v.string())),
@@ -79,5 +81,23 @@ export const remove = mutation({
   handler: async (ctx, { id }) => {
     await ctx.db.delete(id as Id<"products">);
     return { ok: true };
+  },
+});
+
+export const seed = mutation({
+  args: { products: v.array(v.object(baseArgs)) },
+  handler: async (ctx, { products }) => {
+    const ids: Id<"products">[] = [];
+    for (const product of products) {
+      const copy = { ...product } as any;
+      trimAndOmitEmpty(copy);
+      ids.push(
+        await ctx.db.insert("products", {
+          ...copy,
+          media: copy.media ?? [],
+        })
+      );
+    }
+    return ids;
   },
 });
