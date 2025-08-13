@@ -1,54 +1,67 @@
-import { mutation, query } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
+
+const PLATFORM_KEYS = [
+  "gumroadUrl",
+  "etsyUrl",
+  "creativeMarketUrl",
+  "notionUrl",
+  "notionery",
+  "notionEverything",
+  "prototion",
+  "notionLand",
+] as const;
+
+function isValidLink(x: unknown): x is string {
+  return typeof x === "string" && x.trim() !== "" && x.trim().toLowerCase() !== "n/a";
+}
+
+// Simple deterministic string hash (unsigned 32-bit)
+function hash32(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h >>> 0;
+}
 
 export const randomize = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const products = await ctx.db.query("products").collect();
+  args: { seed: v.optional(v.string()) },
+  handler: async (ctx, { seed }) => {
+    // Query only published products
+    const all = await ctx.db
+      .query("products")
+      .withIndex("by_published", (q) => q.eq("published", true))
+      .collect();
+
+    // Keep only those with at least one valid platform link
+    const products = all.filter((p) =>
+      PLATFORM_KEYS.some((k) => isValidLink((p as any)[k]))
+    );
+
     if (products.length === 0) {
-      throw new Error("No products available");
+      throw new Error("No products with valid platform links available");
     }
-    const product = products[Math.floor(Math.random() * products.length)];
-    await ctx.db.insert("randomizerStats", {
-      productId: product._id as Id<"products">,
-      timestamp: Date.now(),
-    });
-    return product;
-  },
-});
 
-export const recentStats = query({
-  args: { limit: v.number() },
-  handler: async (ctx, { limit }) => {
-    const entries = await ctx.db
-      .query("randomizerStats")
-      .order("desc")
-      .take(limit);
-    const counts: Record<string, { count: number; product: any }> = {};
-    for (const e of entries) {
-      const prod = await ctx.db.get(e.productId);
-      if (!prod) continue;
-      const key = e.productId as unknown as string;
-      if (!counts[key]) counts[key] = { count: 0, product: prod };
-      counts[key].count += 1;
-    }
-    return Object.values(counts);
-  },
-});
+    // Choose product index (deterministic if seed provided)
+    const index = seed
+      ? (hash32(seed) % products.length)
+      : Math.floor(Math.random() * products.length);
 
-export const summaryStats = query({
-  args: {},
-  handler: async (ctx) => {
-    const entries = await ctx.db.query("randomizerStats").collect();
-    const counts: Record<string, { count: number; product: any }> = {};
-    for (const e of entries) {
-      const prod = await ctx.db.get(e.productId);
-      if (!prod) continue;
-      const key = e.productId as unknown as string;
-      if (!counts[key]) counts[key] = { count: 0, product: prod };
-      counts[key].count += 1;
-    }
-    return Object.values(counts);
+    const product = products[index];
+
+    // Choose a valid platform for the chosen product
+    const validPlatforms = PLATFORM_KEYS.filter((key) =>
+      isValidLink((product as any)[key])
+    );
+    const platformKey =
+      validPlatforms[Math.floor(Math.random() * validPlatforms.length)] ?? null;
+    const platformUrl = platformKey ? (product as any)[platformKey] : null;
+
+    // Return product + chosen platform
+    return {
+      product,
+      platformKey,
+      platformUrl,
+      seed: seed ?? null,
+    };
   },
 });

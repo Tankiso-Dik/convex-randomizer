@@ -16,7 +16,6 @@ This is a minimal, monolithic project for managing and querying PLR Notion templ
   - SEO copy
   - Product descriptions
   - Listing metadata
-- Record run stats in Convex for scoring and analysis
 
 Minimal Next.js frontend with Convex as the backend.
 
@@ -33,12 +32,23 @@ convex-randomizer/
 │   └── \_generated/            # Convex auto-generated files
 ├── app/                      # Next.js app (randomizer page)
 ├── .env.local                 # Convex cloud project info
-├── randomizerStats (Convex)   # Tracks run stats for scoring
 ├── package.json
 ├── tsconfig.json
 ├── README.md                  # You're reading this
 
 ````
+
+---
+
+## 🔑 Environment Variables
+
+Define the Convex deployment URL in `.env.local` using the `NEXT_PUBLIC_CONVEX_URL` key so it is available to the browser:
+
+```bash
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+```
+
+Client-side code should reference this via `process.env.NEXT_PUBLIC_CONVEX_URL`. The `CONVEX_DEPLOYMENT` variable may remain for the Convex CLI but is not used in frontend code.
 
 ---
 
@@ -99,9 +109,12 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 2. **Insert products** through the dashboard UI.
 
 3. **Use the randomizer page** to fetch a random product.
-   Each run is also stored in Convex via `randomizerStats.insert` to power a scoring system.
 
 4. **Use the output** in prompts for image generation, SEO writing, or markdown documentation.
+
+## 🩺 Health Check
+
+The endpoint `/api/health` returns `{ "ok": true }` and can be used by deployment monitoring services to verify the app is running.
 
 ---
 
@@ -110,7 +123,6 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 * [x] Schema defined with `altText` and `sceneDescription` required for all media items
 * [x] Dev server working
 * [x] Manual data entry working
-* [x] Run stats stored via `randomizerStats.insert`
 * [x] Gemini CLI ready to consume prompt input
 
 ---

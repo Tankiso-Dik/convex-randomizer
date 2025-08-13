@@ -9,7 +9,7 @@
     "start": "next start",
     "codegen": "convex codegen",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"(no tests)\" && exit 0"
+    "test": "npm run typecheck"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +23,8 @@
     "typescript": "^5.9.2"
   },
   "devDependencies": {
-    "@types/node": "^24.2.1"
+    "@types/node": "^24.2.1",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7"
   }
 }
