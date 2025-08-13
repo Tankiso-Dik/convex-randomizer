@@ -26,9 +26,13 @@ function hash32(s: string): number {
 export const randomize = mutation({
   args: { seed: v.optional(v.string()) },
   handler: async (ctx, { seed }) => {
-    const all = await ctx.db.query("products").collect();
+    // Query only published products
+    const all = await ctx.db
+      .query("products")
+      .withIndex("by_published", (q) => q.eq("published", true))
+      .collect();
 
-    // Keep only products with at least one valid platform link
+    // Keep only those with at least one valid platform link
     const products = all.filter((p) =>
       PLATFORM_KEYS.some((k) => isValidLink((p as any)[k]))
     );
@@ -52,7 +56,7 @@ export const randomize = mutation({
       validPlatforms[Math.floor(Math.random() * validPlatforms.length)] ?? null;
     const platformUrl = platformKey ? (product as any)[platformKey] : null;
 
-    // Return both product and chosen platform (no analytics/stat writes)
+    // Return product + chosen platform
     return {
       product,
       platformKey,

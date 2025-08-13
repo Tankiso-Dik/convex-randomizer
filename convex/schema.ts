@@ -39,8 +39,8 @@ export default defineSchema({
           v.literal("gif"),
           v.literal("icon")
         ),
-        altText: v.string(),          // required
-        sceneDescription: v.string(), // required
+        altText: v.string(),
+        sceneDescription: v.string(),
       })
     ),
 

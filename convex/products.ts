@@ -35,6 +35,7 @@ const baseArgs = {
   categories: v.array(v.string()),
   tags: v.array(v.string()),
   media: v.optional(v.array(v.any())),
+  published: v.optional(v.boolean()),
 };
 
 export const list = query({ args: {}, handler: (ctx) => ctx.db.query("products").collect() });
@@ -45,7 +46,11 @@ export const create = mutation({
   args: baseArgs,
   handler: async (ctx, args) => {
     trimAndOmitEmpty(args as any);
-    return await ctx.db.insert("products", { ...args, media: args.media ?? [] });
+    return await ctx.db.insert("products", {
+      ...args,
+      media: args.media ?? [],
+      published: args.published ?? false,
+    });
   },
 });
 
@@ -64,6 +69,7 @@ export const update = mutation({
       categories: v.optional(v.array(v.string())),
       tags: v.optional(v.array(v.string())),
       media: v.optional(v.array(v.any())),
+      published: v.optional(v.boolean()),
     }),
   },
   handler: async (ctx, { id, patch }) => {
