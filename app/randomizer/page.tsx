@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useMutation, useQuery } from "../../lib/convexClient";
 import { useSearchParams } from "next/navigation";
 import { api } from "../../convex/_generated/api";
@@ -12,7 +12,7 @@ type RandomizeResult = {
   seed: string | null;
 };
 
-export default function RandomizerPage() {
+function RandomizerContent() {
   const randomize = useMutation(api.randomizer.randomize);
   const recent = useQuery(api.randomizer.recentCounts, { limit: 50 });
   const searchParams = useSearchParams();
@@ -87,5 +87,13 @@ export default function RandomizerPage() {
         </details>
       </div>
     </div>
+  );
+}
+
+export default function RandomizerPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 16 }}>Loading…</div>}>
+      <RandomizerContent />
+    </Suspense>
   );
 }

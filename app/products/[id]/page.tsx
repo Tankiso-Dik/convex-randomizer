@@ -6,11 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import ProductForm, { ProductFormValues } from "../../components/ProductForm";
 
-interface Params {
-  id: string;
-}
-
-export default function EditProductPage({ params }: { params: Params }) {
+export default function EditProductPage({ params }: any) {
   const router = useRouter();
   const id = params.id as Id<"products">;
   const product = useQuery(api.products.get, { id });

@@ -1,159 +1,65 @@
-Got it — here’s the **updated README.md** with the new `altText` + `sceneDescription` requirement baked in, plus the note about legacy fields.
+# Convex Randomizer
 
----
+Next.js + Convex app with a minimal CRM (`/products`) and a randomizer (`/randomizer`). Supports JSON import/export, inline JSON preview, and optional recent-pick stats.
 
-```md
-# Product Image Studio — Personal CRM + Randomizer
+### Environment
+- `NEXT_PUBLIC_CONVEX_URL`: Your Convex deployment URL (browser-visible)
+- `ADMIN_PASSWORD` (optional): Enables basic auth for `/products` in production
+- `RANDOMIZER_STATS` (optional, default 0): Set to `1` to collect recent picks
 
-A personal Next.js + Convex tool:
-- `/products`: lightweight CRM for listing/creating/editing products, with JSON import/export and inline JSON preview.
-- `/randomizer`: picks a published product with a valid platform URL (Etsy/CM/etc). Supports `?seed=...` for deterministic picks.
+See `.env.example` for values. Create `.env.local` in the project root.
 
-## 📦 Purpose
-
-- Store product data (templates) manually using the Convex UI.
-- Fetch a **random product** from Convex.
-- Pass the random product(s) to AI tools like Gemini CLI or Codex for generating:
-  - Image prompts
-  - SEO copy
-  - Product descriptions
-  - Listing metadata
-
-Minimal Next.js frontend with Convex as the backend.
-
----
-
-## 🗃️ Project Structure
-
+### Project Structure
+```
+convex/
+  schema.ts, products.ts, randomizer.ts, _generated/
+app/
+  products/, randomizer/, api/health
+lib/convexClient.ts
+middleware.ts
+render.yaml
 ```
 
-convex-randomizer/
-├── convex/
-│   ├── schema.ts              # Product + randomizerStats schema definitions
-│   ├── products.ts            # CRUD + seed
-│   ├── randomizer.ts          # Randomize + recentCounts (optional stats)
-│   └── _generated/            # Convex auto-generated files
-├── app/                       # Next.js app (products + randomizer)
-├── lib/convexClient.ts        # Convex provider + hook exports
-├── middleware.ts              # Basic Auth for /products (optional)
-├── render.yaml                # Render deploy blueprint
-├── package.json
-├── tsconfig.json
-├── README.md                  # You're reading this
-
-````
-
----
-
-## 🔑 Environment Variables
-
-Define the Convex deployment URL in `.env.local` using the `NEXT_PUBLIC_CONVEX_URL` key so it is available to the browser:
-
+## Local Development
+1) Install deps
 ```bash
-NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+npm ci
+```
+2) Set env
+```bash
+cp .env.example .env.local
+# Edit NEXT_PUBLIC_CONVEX_URL to your Convex deployment URL
+```
+3) Start Convex and push schema (one-time after changes)
+```bash
+npx convex dev &
+npx convex push
+```
+4) Run the app
+```bash
+npm run dev
+```
+5) Typecheck and production build
+```bash
+npm run typecheck
+npm run build
 ```
 
-Client-side code should reference this via `process.env.NEXT_PUBLIC_CONVEX_URL`. The `CONVEX_DEPLOYMENT` variable may remain for the Convex CLI but is not used in frontend code.
+## Render Deployment
+This repo includes `render.yaml` for zero-config deploy.
 
-### Randomizer Stats (optional)
-Set `RANDOMIZER_STATS=1` to enable collection of recent randomizer picks. Without it, nothing is collected. When enabled, `/randomizer` shows a small recent-picks panel.
+Steps:
+1) Create a Convex deployment and copy its Deployment URL
+2) Create a new Web Service on Render from this repo (Blueprints supported)
+3) Set environment variables:
+   - `NEXT_PUBLIC_CONVEX_URL` = your Convex Deployment URL
+   - `ADMIN_PASSWORD` (optional)
+   - `RANDOMIZER_STATS=1` (optional)
+4) Render uses:
+   - Build: `npm ci && npm run build`
+   - Start: `npm run start`
 
----
-
-## 🧠 Schema Overview
-
-Each product in Convex includes:
-
-- `listingName: string`
-- `officialName: string`
-- `shortDescription: string`
-- `description: string`
-- `instructions: string`
-
-**Platform URLs** (optional; only stored if a valid https:// URL is provided. "N/A" is accepted on input but not stored.):
-- `gumroadUrl`
-- `etsyUrl`
-- `creativeMarketUrl`
-- `notionUrl`
-- `notionery`
-- `notionEverything`
-- `prototion`
-- `notionLand`
-
-**Metadata Arrays**:
-- `features: string[]`
-- `categories: string[]`
-- `tags: string[]`
-
-**Media** *(source of truth)*:
-```ts
-media: {
-  url: string;
-  type: "thumbnail" | "screenshot" | "banner" | "video" | "gif" | "icon";
-  altText: string;          // mandatory for accessibility
-  sceneDescription: string; // mandatory for contextual metadata
-}[]
-````
-
-**Legacy fields** *(for migration only — to be removed once backfilled into `media[]`)*:
-
-* `imagePolished: string[]`
-* `screenshots: string[]`
-* `gifs: string[]`
-* `videoUrls: string[]`
-
-Data is manually added through the [Convex Dashboard](https://dashboard.convex.dev/).
-
----
-
-## 🌀 How It Works
-
-1. **Start Convex dev server:**
-
-   ```bash
-   npx convex dev
-   # After schema changes:
-   npx convex push
-   ```
-
-2. **Insert products** through the dashboard UI.
-
-3. **Use the randomizer page** to fetch a random product.
-
-4. **Use the output** in prompts for image generation, SEO writing, or markdown documentation.
-
-## 🩺 Health Check
-
-The endpoint `/api/health` returns `{ "ok": true }` and can be used by deployment monitoring services to verify the app is running.
-
----
-
-## ✅ Done
-
-* [x] Schema defined with `altText` and `sceneDescription` required for all media items
-* [x] Dev server working
-* [x] Manual data entry working
-* [x] Gemini CLI ready to consume prompt input
-
----
-
-## 🧠 Future Ideas
-
-* Optional filtering by platform or category
-* Markdown output format for the random product
-* Automatic migration and removal of legacy arrays
-* Frontend UI (deferred)
-* Replit support (already works!)
-
----
-
-## 👋 Usage Goals
-
-This repo is part of a larger system for remaking and selling PLR Notion templates. The randomizer helps ensure consistent output pipelines while reducing burnout and cognitive fatigue.
-
-```
-
----
-
-Do you want me to follow this immediately with the **updated GEMINI.md** in the same style so they match perfectly? That way both will be in sync.
-```
+## Notes
+- All imports are relative and resolved via Next.js app router
+- Convex types are generated into `convex/_generated/*` via `npx convex codegen`
+- Health check: `GET /api/health` returns `{ ok: true }`
