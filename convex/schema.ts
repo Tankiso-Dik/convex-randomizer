@@ -22,11 +22,10 @@ export default defineSchema({
     notionLand: v.optional(v.string()),
 
     // Metadata
+    published: v.boolean(),
     features: v.array(v.string()),
     categories: v.array(v.string()),
     tags: v.array(v.string()),
-
-    published: v.boolean(),
 
     // Canonical media store (mandatory complements)
     media: v.array(
@@ -40,8 +39,8 @@ export default defineSchema({
           v.literal("gif"),
           v.literal("icon")
         ),
-        altText: v.string(),          // required
-        sceneDescription: v.string(), // required
+        altText: v.string(),
+        sceneDescription: v.string(),
       })
     ),
 
@@ -50,9 +49,15 @@ export default defineSchema({
     screenshots: v.optional(v.array(v.string())),
     gifs: v.optional(v.array(v.string())),
     videoUrls: v.optional(v.array(v.string())),
-  }).index("by_published", ["published"]),
-  randomizerStats: defineTable({
-    productId: v.id("products"),
-    timestamp: v.number(),
-  }),
+  })
+    // Minimal useful indexes (tune later as real filters emerge)
+    .index("by_published", ["published"])
+    .index("by_gumroadUrl", ["gumroadUrl"])
+    .index("by_etsyUrl", ["etsyUrl"])
+    .index("by_creativeMarketUrl", ["creativeMarketUrl"])
+    .index("by_notionUrl", ["notionUrl"])
+    .index("by_notionery", ["notionery"])
+    .index("by_notionEverything", ["notionEverything"])
+    .index("by_prototion", ["prototion"])
+    .index("by_notionLand", ["notionLand"]),
 });
