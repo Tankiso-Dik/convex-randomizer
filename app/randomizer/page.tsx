@@ -1,70 +1,71 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
+import { useSearchParams } from "next/navigation";
 import { api } from "../../convex/_generated/api";
 
-const PLATFORM_KEYS = [
-  "gumroadUrl",
-  "etsyUrl",
-  "creativeMarketUrl",
-  "notionUrl",
-  "notionery",
-  "notionEverything",
-  "prototion",
-  "notionLand",
-] as const;
+type RandomizeResult = {
+  product: any;
+  platformKey: string | null;
+  platformUrl: string | null;
+  seed: string | null;
+};
 
 export default function RandomizerPage() {
   const randomize = useMutation(api.randomizer.randomize);
-  const recent = useQuery(api.randomizer.recentStats, { limit: 20 }) || [];
-  const summary = useQuery(api.randomizer.summaryStats) || [];
-  const [current, setCurrent] = useState<any>(null);
+  const searchParams = useSearchParams();
+  const seed = searchParams.get("seed") ?? undefined;
+
+  const [current, setCurrent] = useState<RandomizeResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const run = async () => {
-    const result = await randomize();
-    setCurrent(result);
+    try {
+      setLoading(true);
+      setErr(null);
+      const result = await randomize(seed ? { seed } : {});
+      setCurrent(result as RandomizeResult);
+    } catch (e: any) {
+      setErr(e?.message ?? "Randomizer failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const platform =
-    current &&
-    PLATFORM_KEYS.map((k) => (current as any)[k]).find((v) => v != null);
-
-  const score =
-    current &&
-    (recent.find((r: any) => r.product._id === current._id)?.count || 0);
-
   return (
-    <div>
-      <button onClick={run}>Randomize</button>
+    <div style={{ padding: 16 }}>
+      <button onClick={run} disabled={loading}>
+        {loading ? "Picking…" : "Randomize"}
+      </button>
+
+      {err && <div style={{ marginTop: 12, color: "crimson" }}>⚠️ {err}</div>}
+
       {current && (
-        <div>
-          <h2>{current.listingName}</h2>
-          {platform && (
-            <p>
-              Platform: <a href={platform}>{platform}</a>
+        <div style={{ marginTop: 16 }}>
+          <h2 style={{ margin: 0 }}>
+            {current.product?.listingName ?? "Untitled"}
+          </h2>
+
+          {current.platformUrl ? (
+            <p style={{ marginTop: 8 }}>
+              Platform (<code>{current.platformKey}</code>):{" "}
+              <a href={current.platformUrl} target="_blank" rel="noreferrer">
+                {current.platformUrl}
+              </a>
+            </p>
+          ) : (
+            <p style={{ marginTop: 8 }}>No valid platform link found.</p>
+          )}
+
+          {current.seed && (
+            <p style={{ marginTop: 8 }}>
+              Seed: <code>{current.seed}</code>
             </p>
           )}
-          <p>Score (last 20): {score}</p>
         </div>
       )}
-      <h3>Health</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Count</th>
-          </tr>
-        </thead>
-        <tbody>
-          {summary.map((s: any) => (
-            <tr key={s.product._id}>
-              <td>{s.product.listingName}</td>
-              <td>{s.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

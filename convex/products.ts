@@ -29,11 +29,13 @@ const baseArgs = {
   shortDescription: v.string(),
   description: v.string(),
   instructions: v.string(),
+  published: v.boolean(),
   ...platformFields,
   features: v.array(v.string()),
   categories: v.array(v.string()),
   tags: v.array(v.string()),
   media: v.optional(v.array(v.any())),
+  published: v.optional(v.boolean()),
 };
 
 export const list = query({ args: {}, handler: (ctx) => ctx.db.query("products").collect() });
@@ -44,7 +46,11 @@ export const create = mutation({
   args: baseArgs,
   handler: async (ctx, args) => {
     trimAndOmitEmpty(args as any);
-    return await ctx.db.insert("products", { ...args, media: args.media ?? [] });
+    return await ctx.db.insert("products", {
+      ...args,
+      media: args.media ?? [],
+      published: args.published ?? false,
+    });
   },
 });
 
@@ -57,11 +63,13 @@ export const update = mutation({
       shortDescription: v.optional(v.string()),
       description: v.optional(v.string()),
       instructions: v.optional(v.string()),
+      published: v.optional(v.boolean()),
       ...platformFields,
       features: v.optional(v.array(v.string())),
       categories: v.optional(v.array(v.string())),
       tags: v.optional(v.array(v.string())),
       media: v.optional(v.array(v.any())),
+      published: v.optional(v.boolean()),
     }),
   },
   handler: async (ctx, { id, patch }) => {
@@ -79,5 +87,23 @@ export const remove = mutation({
   handler: async (ctx, { id }) => {
     await ctx.db.delete(id as Id<"products">);
     return { ok: true };
+  },
+});
+
+export const seed = mutation({
+  args: { products: v.array(v.object(baseArgs)) },
+  handler: async (ctx, { products }) => {
+    const ids: Id<"products">[] = [];
+    for (const product of products) {
+      const copy = { ...product } as any;
+      trimAndOmitEmpty(copy);
+      ids.push(
+        await ctx.db.insert("products", {
+          ...copy,
+          media: copy.media ?? [],
+        })
+      );
+    }
+    return ids;
   },
 });
