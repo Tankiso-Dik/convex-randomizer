@@ -22,6 +22,7 @@ export default defineSchema({
     notionLand: v.optional(v.string()),
 
     // Metadata
+    published: v.boolean(),
     features: v.array(v.string()),
     categories: v.array(v.string()),
     tags: v.array(v.string()),
@@ -48,5 +49,15 @@ export default defineSchema({
     screenshots: v.optional(v.array(v.string())),
     gifs: v.optional(v.array(v.string())),
     videoUrls: v.optional(v.array(v.string())),
-  }),
+  })
+    // Minimal useful indexes (tune later as real filters emerge)
+    .index("by_published", ["published"])
+    .index("by_gumroadUrl", ["gumroadUrl"])
+    .index("by_etsyUrl", ["etsyUrl"])
+    .index("by_creativeMarketUrl", ["creativeMarketUrl"])
+    .index("by_notionUrl", ["notionUrl"])
+    .index("by_notionery", ["notionery"])
+    .index("by_notionEverything", ["notionEverything"])
+    .index("by_prototion", ["prototion"])
+    .index("by_notionLand", ["notionLand"]),
 });

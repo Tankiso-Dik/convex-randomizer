@@ -40,6 +40,18 @@ convex-randomizer/
 
 ---
 
+## 🔑 Environment Variables
+
+Define the Convex deployment URL in `.env.local` using the `NEXT_PUBLIC_CONVEX_URL` key so it is available to the browser:
+
+```bash
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+```
+
+Client-side code should reference this via `process.env.NEXT_PUBLIC_CONVEX_URL`. The `CONVEX_DEPLOYMENT` variable may remain for the Convex CLI but is not used in frontend code.
+
+---
+
 ## 🧠 Schema Overview
 
 Each product in Convex includes:
@@ -99,6 +111,10 @@ Data is manually added through the [Convex Dashboard](https://dashboard.convex.d
 3. **Use the randomizer page** to fetch a random product.
 
 4. **Use the output** in prompts for image generation, SEO writing, or markdown documentation.
+
+## 🩺 Health Check
+
+The endpoint `/api/health` returns `{ "ok": true }` and can be used by deployment monitoring services to verify the app is running.
 
 ---
 
