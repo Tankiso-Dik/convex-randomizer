@@ -10,7 +10,11 @@ export default function NewProductPage() {
   const create = useMutation(api.products.create);
 
   const handleSubmit = async (values: ProductFormValues) => {
-    const id = await create({ ...values, media: values.media ?? [] });
+    const id = await create({
+      ...values,
+      published: true,
+      media: values.media ?? [],
+    });
     router.push(`/products/${id}`);
   };
 
