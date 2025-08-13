@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation } from "../../../lib/convexClient";
 import { api } from "../../../convex/_generated/api";
 import ProductForm, { ProductFormValues } from "../../components/ProductForm";
 

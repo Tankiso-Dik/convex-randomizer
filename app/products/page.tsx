@@ -27,9 +27,7 @@ export default function ProductsPage() {
     downloadJson(selectedProducts, "products.json");
   };
 
-  const handleImport = async (
-    e: ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImport = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const text = await file.text();

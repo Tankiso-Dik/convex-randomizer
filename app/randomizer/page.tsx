@@ -44,7 +44,9 @@ export default function RandomizerPage() {
 
       {current && (
         <div style={{ marginTop: 16 }}>
-          <h2 style={{ margin: 0 }}>{current.product?.listingName ?? "Untitled"}</h2>
+          <h2 style={{ margin: 0 }}>
+            {current.product?.listingName ?? "Untitled"}
+          </h2>
 
           {current.platformUrl ? (
             <p style={{ marginTop: 8 }}>
